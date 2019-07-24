@@ -1,0 +1,22 @@
+[HEADER] - 1 byte
+  number of total bytes for the next line (including itself)
+
+[NAME] - any even number of bytes > 0
+  each ascii char is preceded by 0x00
+
+[EMPTY BYTE]
+
+[number] - 4 bytes. Starts at 0x20 after 0 (0x00) and 1 (0x01)
+  bytes ordered from least significant to most significant
+
+[PRE-FOOTER]
+  0b76543210
+    bit 0 - analog
+    bit 1 - serial
+
+[FOOTER] - 1 byte
+  0b76543210
+     bits 0, 1 -> high when signal has destination
+     bit 2 -> serial/analog
+
+

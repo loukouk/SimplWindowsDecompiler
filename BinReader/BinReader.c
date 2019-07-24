@@ -243,7 +243,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 
 	    	switch(STATE)
 	    	{
-				case STATE_FILE_HEADER_SIZE:
+				case BIN_STATE_FILE_HEADER_SIZE:
 					str_index = 0;
 					limit = word/2;
 					counter = 1;
@@ -256,7 +256,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
         				exit(EXIT_FAILURE);
 					}
 					break;
-				case STATE_FILE_HEADER:
+				case BIN_STATE_FILE_HEADER:
 					if ((word >= 0x20 && word < 0x7f) || word == 0x0a || word == 0x09)
 					{
 						if (str_index >= header_size-1)
@@ -273,12 +273,12 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 						STATE++;
 					}
 					break;
-				case STATE_SYMBOL_HEADER_LOW_WORD:
+				case BIN_STATE_SYMBOL_HEADER_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter = 1;
 					STATE++;
 					break;
-				case STATE_SYMBOL_HEADER_HIGH_WORD:
+				case BIN_STATE_SYMBOL_HEADER_HIGH_WORD:
 					dword |= word << 16;
 					if (dword % 2 || dword < 8)
 					{
@@ -294,18 +294,18 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 
 					STATE++;
 					break;
-				case STATE_SYMBOL_ID_LOW_WORD:
+				case BIN_STATE_SYMBOL_ID_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_ID_HIGH_WORD:
+				case BIN_STATE_SYMBOL_ID_HIGH_WORD:
 					dword |= word << 16;
 
 					counter++;
 					if (dword > 0x00ff)		//if device dev, skip for now
 					{
-						STATE = STATE_DEVICE_DEFINITION;
+						STATE = BIN_STATE_DEVICE_DEFINITION;
 					}
 					else 
 					{
@@ -323,12 +323,12 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 						STATE++;
 					}
 					break;
-				case STATE_SYMBOL_SIG_INPUTS_LOW_WORD:
+				case BIN_STATE_SYMBOL_SIG_INPUTS_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_SIG_INPUTS_HIGH_WORD:
+				case BIN_STATE_SYMBOL_SIG_INPUTS_HIGH_WORD:
 					dword |= word << 16;
 					limit_ins = dword/2;
 					symbols[sym_index].num_ins = (limit - limit_ins) / 2;
@@ -339,12 +339,12 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_SIG_OUTPUTS_LOW_WORD:
+				case BIN_STATE_SYMBOL_SIG_OUTPUTS_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_SIG_OUTPUTS_HIGH_WORD:
+				case BIN_STATE_SYMBOL_SIG_OUTPUTS_HIGH_WORD:
 					dword |= word << 16;
 					limit_outs = dword/2;
 
@@ -384,7 +384,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_NUMBER_LENGTH:
+				case BIN_STATE_SYMBOL_NUMBER_LENGTH:
 					str_len = (word/2) - 1;
 					str_index = 0;
 
@@ -400,11 +400,11 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_NUMBER_UNKNOWN:
+				case BIN_STATE_SYMBOL_NUMBER_UNKNOWN:
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_NUMBER_VALUE:
+				case BIN_STATE_SYMBOL_NUMBER_VALUE:
 					symbols[sym_index].number[str_index] = (char)(word & 0xFF);
 					str_index++;
 					counter++;
@@ -418,19 +418,19 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 
 						if (counter == limit)
 						{
-							STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 						}
 						else if (counter == limit_ins)
 						{
-							STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 						}
 						else if (counter == limit_outs)
 						{
-							STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 						}
 						else if (counter < limit_outs)
 						{
-							STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 						}
 						else
 						{
@@ -440,7 +440,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 						}
 					}
 					break;
-				case STATE_SYMBOL_PARAMETER_LENGTH:				//TODO PARAMETERS
+				case BIN_STATE_SYMBOL_PARAMETER_LENGTH:				//TODO PARAMETERS
 					str_len = (word/2) - 1;
 
 					if (str_len < 0)
@@ -453,7 +453,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_PARAMETER_TYPE:
+				case BIN_STATE_SYMBOL_PARAMETER_TYPE:
 					counter++;
 					switch (word)
 					{
@@ -464,7 +464,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 								getc(stdin);
         						exit(EXIT_FAILURE);
 							}
-							STATE = STATE_SYMBOL_PARAMETER_NUM_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_NUM_LOW_WORD;
 							break;
 						case PARAM_TYPE_USHORT:
 							if (str_len != 2)
@@ -479,7 +479,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 								getc(stdin);
         						exit(EXIT_FAILURE);
 							}
-							STATE = STATE_SYMBOL_PARAMETER_USHORT_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_USHORT_LOW_WORD;
 							break;
 
 						case PARAM_TYPE_STRING:
@@ -501,25 +501,25 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 							{
 								if (counter == limit)
 								{
-									STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+									STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 								}
 								else if (counter == limit_ins)
 								{
 									sig_index = 0;
-									STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+									STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 								}
 								else if (counter == limit_outs)
 								{
 									sig_index = 0;
-									STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+									STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 								}
 								else if (counter < limit_outs)
 								{
 									sig_index++;
 									if (sig_index < symbols[sym_index].num_params)
-										STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+										STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 									else
-										STATE = STATE_SYMBOL_PARAMETER_SKIP;
+										STATE = BIN_STATE_SYMBOL_PARAMETER_SKIP;
 								}
 								else
 								{
@@ -539,7 +539,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 								}
 								memset(temp_str, '\0', str_len);
 
-								STATE = STATE_SYMBOL_PARAMETER_STRING;
+								STATE = BIN_STATE_SYMBOL_PARAMETER_STRING;
 							}
 							break;
 
@@ -550,29 +550,29 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 								getc(stdin);
         						exit(EXIT_FAILURE);
 							}
-							STATE = STATE_SYMBOL_PARAMETER_EXPAND_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_EXPAND_LOW_WORD;
 							break;
 						default:
 							if (counter == limit)
 							{
-								STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+								STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 							}
 							else if (counter == limit_ins)
 							{
 								sig_index = 0;
-								STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+								STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 							}
 							else if (counter == limit_outs)
 							{
 								sig_index = 0;
-								STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+								STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 							}
 							else if (counter < limit_outs)
 							{
 								if (sig_index < symbols[sym_index].num_params)
-									STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+									STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 								else
-									STATE = STATE_SYMBOL_PARAMETER_SKIP;
+									STATE = BIN_STATE_SYMBOL_PARAMETER_SKIP;
 							}
 							else
 							{
@@ -596,13 +596,13 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					}
 					break;
 
-				case STATE_SYMBOL_PARAMETER_NUM_LOW_WORD:
+				case BIN_STATE_SYMBOL_PARAMETER_NUM_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
 
-				case STATE_SYMBOL_PARAMETER_NUM_HIGH_WORD:
+				case BIN_STATE_SYMBOL_PARAMETER_NUM_HIGH_WORD:
 					dword |= word << 16;
 					symbols[sym_index].num_params = dword;
 
@@ -620,24 +620,24 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 
 					if (counter == limit)
 					{
-						STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 					}
 					else if (counter == limit_ins)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 					}
 					else if (counter == limit_outs)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 					}
 					else if (counter < limit_outs)
 					{
 						if (sig_index < symbols[sym_index].num_params)
-							STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 						else
-							STATE = STATE_SYMBOL_PARAMETER_SKIP;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_SKIP;
 					}
 					else
 					{
@@ -646,12 +646,12 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 						exit(EXIT_FAILURE); 
 					}
 					break;
-				case STATE_SYMBOL_PARAMETER_USHORT_LOW_WORD:
+				case BIN_STATE_SYMBOL_PARAMETER_USHORT_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_PARAMETER_USHORT_HIGH_WORD:
+				case BIN_STATE_SYMBOL_PARAMETER_USHORT_HIGH_WORD:
 					temp_ptr = malloc(sizeof(unsigned int));
 					if (temp_ptr == NULL)
 					{
@@ -670,24 +670,24 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 
 					if (counter == limit)
 					{
-						STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 					}
 					else if (counter == limit_ins)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 					}
 					else if (counter == limit_outs)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 					}
 					else if (counter < limit_outs)
 					{
 						if (sig_index < symbols[sym_index].num_params)
-							STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 						else
-							STATE = STATE_SYMBOL_PARAMETER_SKIP;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_SKIP;
 					}
 					else
 					{
@@ -697,37 +697,37 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					}
 					break;
 
-				case STATE_SYMBOL_PARAMETER_EXPAND_LOW_WORD:
+				case BIN_STATE_SYMBOL_PARAMETER_EXPAND_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
 
-				case STATE_SYMBOL_PARAMETER_EXPAND_HIGH_WORD:
+				case BIN_STATE_SYMBOL_PARAMETER_EXPAND_HIGH_WORD:
 					dword |= word << 16;
 					symbols[sym_index].expand = dword;
 					counter++;
 
 					if (counter == limit)
 					{
-						STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 					}
 					else if (counter == limit_ins)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 					}
 					else if (counter == limit_outs)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 					}
 					else if (counter < limit_outs)
 					{
 						if (sig_index < symbols[sym_index].num_params)
-							STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 						else
-							STATE = STATE_SYMBOL_PARAMETER_SKIP;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_SKIP;
 					}
 					else
 					{
@@ -737,7 +737,7 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					}
 					break;
 
-				case STATE_SYMBOL_PARAMETER_STRING:
+				case BIN_STATE_SYMBOL_PARAMETER_STRING:
 					temp_str[str_index] = (char) word;
 					str_index++;
 					counter++;
@@ -750,24 +750,24 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 
 						if (counter == limit)
 						{
-							STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 						}
 						else if (counter == limit_ins)
 						{
 							sig_index = 0;
-							STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 						}
 						else if (counter == limit_outs)
 						{
 							sig_index = 0;
-							STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 						}
 						else if (counter < limit_outs)
 						{
 							if (sig_index < symbols[sym_index].num_params)
-								STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+								STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 							else
-								STATE = STATE_SYMBOL_PARAMETER_SKIP;
+								STATE = BIN_STATE_SYMBOL_PARAMETER_SKIP;
 						}
 						else
 						{
@@ -778,28 +778,28 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					}
 					break;
 
-				case STATE_SYMBOL_PARAMETER_SKIP:
+				case BIN_STATE_SYMBOL_PARAMETER_SKIP:
 					counter++;
 					if (counter == limit)
 					{
-						STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 					}
 					else if (counter == limit_ins)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 					}
 					else if (counter == limit_outs)
 					{
 						sig_index = 0;
-						STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 					}
 					else if (counter < limit_outs)
 					{
 						if (sig_index < symbols[sym_index].num_params)
-							STATE = STATE_SYMBOL_PARAMETER_LENGTH;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_LENGTH;
 						else
-							STATE = STATE_SYMBOL_PARAMETER_SKIP;
+							STATE = BIN_STATE_SYMBOL_PARAMETER_SKIP;
 					}
 					else
 					{
@@ -809,13 +809,13 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 					}
 					break;
 
-				case STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD:
+				case BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
 
-				case STATE_SYMBOL_SIG_OUTPUT_VALUE_HIGH_WORD:
+				case BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_HIGH_WORD:
 					dword |= word << 16;
 					symbols[sym_index].sig_outputs[sig_index] = dword;
 					sig_index++;
@@ -826,25 +826,25 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 						if (counter == limit_ins && symbols[sym_index].num_ins != 0)
 						{
 							sig_index = 0;
-							STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 						}
 						else
 						{
 							sig_index = 0;
-							STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+							STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 						}
 					}
 					else
 					{
-						STATE = STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_OUTPUT_VALUE_LOW_WORD;
 					}
 					break;				
-				case STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD:
+				case BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD:
 					dword = word & 0xFFFF;
 					counter++;
 					STATE++;
 					break;
-				case STATE_SYMBOL_SIG_INPUT_VALUE_HIGH_WORD:
+				case BIN_STATE_SYMBOL_SIG_INPUT_VALUE_HIGH_WORD:
 					dword |= word << 16;
 					symbols[sym_index].sig_inputs[sig_index] = dword;
 					sig_index++;
@@ -859,18 +859,18 @@ struct BinSymbol *ReadBinFile(char *filepath, int *num_symbols, char **file_head
 		    				exit(EXIT_FAILURE); 
 						}
 						sig_index = 0;
-						STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 					}
 					else
 					{
-						STATE = STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_SIG_INPUT_VALUE_LOW_WORD;
 					}
 					break;
-				default:	//STATE_DEVICE_DEFINITION
+				default:	//BIN_STATE_DEVICE_DEFINITION
 					counter++;
 					if (counter >= limit)
 					{
-						STATE = STATE_SYMBOL_HEADER_LOW_WORD;
+						STATE = BIN_STATE_SYMBOL_HEADER_LOW_WORD;
 					}
 					break;
 	    	} //switch

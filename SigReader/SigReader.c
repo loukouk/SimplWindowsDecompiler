@@ -156,7 +156,7 @@ int FindDuplicateSignal(struct SignalInfo *signals, int size)
 	return 0;
 }
 
-struct SignalInfo *ParseSigFile(char *filepath, int *num_sig, char **header)
+struct SignalInfo *ReadSigFile(char *filepath, int *num_sig, char **header)
 {
 	HANDLE sig_file;
 	char iobuffer[BUF_SIZE], *file_header;
@@ -221,12 +221,12 @@ struct SignalInfo *ParseSigFile(char *filepath, int *num_sig, char **header)
 
 	    	switch(state)
 	    	{
-	    		case STATE_FILE_HEADER:
+	    		case SIG_STATE_FILE_HEADER:
 	    			file_header[name_index] = c;
 	    			if (c == ']')
 	    			{
 	    				name_index = 0;
-	    				state = STATE_SIGNAL_HEADER;
+	    				state = SIG_STATE_SIGNAL_HEADER;
 	    			}
 	    			else 
 	    			{
@@ -241,7 +241,7 @@ struct SignalInfo *ParseSigFile(char *filepath, int *num_sig, char **header)
 	    			}
 					break;
 
-				case STATE_SIGNAL_HEADER:
+				case SIG_STATE_SIGNAL_HEADER:
 					name_num_bytes = (((int) c) - 8) / 2;
 					if (name_num_bytes < 1)	//sanity check
 					{
@@ -266,14 +266,14 @@ struct SignalInfo *ParseSigFile(char *filepath, int *num_sig, char **header)
 					memset(signals[sig_index].name, '\0', name_num_bytes+1);
 
 					name_index = 0;
-					state = STATE_SIGNAL_NAME_EMPTY;
+					state = SIG_STATE_SIGNAL_NAME_EMPTY;
 					break;
 
-				case STATE_SIGNAL_NAME_EMPTY:
-					state = STATE_SIGNAL_NAME_CHAR;
+				case SIG_STATE_SIGNAL_NAME_EMPTY:
+					state = SIG_STATE_SIGNAL_NAME_CHAR;
 					break;
 
-				case STATE_SIGNAL_NAME_CHAR:
+				case SIG_STATE_SIGNAL_NAME_CHAR:
 					if (name_index >= STR_SIZE)
 					{
 						printf("Signal Name too long. Is this a Crestron .sig file?\n");
@@ -285,47 +285,47 @@ struct SignalInfo *ParseSigFile(char *filepath, int *num_sig, char **header)
 
 					if (name_index < name_num_bytes)
 					{
-						state = STATE_SIGNAL_NAME_EMPTY;
+						state = SIG_STATE_SIGNAL_NAME_EMPTY;
 					}
 					else
 					{
-						state = STATE_SIGNAL_NUMBER_EMPTY;
+						state = SIG_STATE_SIGNAL_NUMBER_EMPTY;
 					}
 					break;
 
-				case STATE_SIGNAL_NUMBER_EMPTY:
-					state = STATE_SIGNAL_NUMBER_BYTE1;
+				case SIG_STATE_SIGNAL_NUMBER_EMPTY:
+					state = SIG_STATE_SIGNAL_NUMBER_BYTE1;
 					break;
 
-				case STATE_SIGNAL_NUMBER_BYTE1:
+				case SIG_STATE_SIGNAL_NUMBER_BYTE1:
 					sig_num = (unsigned int) c;
-					state = STATE_SIGNAL_NUMBER_BYTE2;
+					state = SIG_STATE_SIGNAL_NUMBER_BYTE2;
 					break;
 
-				case STATE_SIGNAL_NUMBER_BYTE2:
+				case SIG_STATE_SIGNAL_NUMBER_BYTE2:
 					sig_num |= ((unsigned int) c) << 8U;
-					state = STATE_SIGNAL_NUMBER_BYTE3;
+					state = SIG_STATE_SIGNAL_NUMBER_BYTE3;
 					break;
 
-				case STATE_SIGNAL_NUMBER_BYTE3:
+				case SIG_STATE_SIGNAL_NUMBER_BYTE3:
 					sig_num |= ((unsigned int) c) << 16U;
-					state = STATE_SIGNAL_NUMBER_BYTE4;
+					state = SIG_STATE_SIGNAL_NUMBER_BYTE4;
 					break;
 
-				case STATE_SIGNAL_NUMBER_BYTE4:
+				case SIG_STATE_SIGNAL_NUMBER_BYTE4:
 					sig_num |= ((unsigned int) c) << 24U;
 					signals[sig_index].number = sig_num;
-					state = STATE_SIGNAL_FOOTER_BYTE1;
+					state = SIG_STATE_SIGNAL_FOOTER_BYTE1;
 					break;
 
-				case STATE_SIGNAL_FOOTER_BYTE1:
+				case SIG_STATE_SIGNAL_FOOTER_BYTE1:
 					signals[sig_index].footer[0] = (int) c;
-					state = STATE_SIGNAL_FOOTER_BYTE2;
+					state = SIG_STATE_SIGNAL_FOOTER_BYTE2;
 					break;
 
-				case STATE_SIGNAL_FOOTER_BYTE2:
+				case SIG_STATE_SIGNAL_FOOTER_BYTE2:
 					signals[sig_index].footer[1] = (int) c;
-					state = STATE_SIGNAL_HEADER;
+					state = SIG_STATE_SIGNAL_HEADER;
 					sig_index++;
 					break;
 	    	}

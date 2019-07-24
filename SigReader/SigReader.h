@@ -33,17 +33,17 @@ struct SignalInfo
 
 enum
 {
-	STATE_FILE_HEADER = 0,
-	STATE_SIGNAL_HEADER,
-	STATE_SIGNAL_NAME_EMPTY,
-	STATE_SIGNAL_NAME_CHAR,
-	STATE_SIGNAL_NUMBER_EMPTY,
-	STATE_SIGNAL_NUMBER_BYTE1,
-	STATE_SIGNAL_NUMBER_BYTE2,
-	STATE_SIGNAL_NUMBER_BYTE3,
-	STATE_SIGNAL_NUMBER_BYTE4,
-	STATE_SIGNAL_FOOTER_BYTE1,
-	STATE_SIGNAL_FOOTER_BYTE2
+	SIG_STATE_FILE_HEADER = 0,
+	SIG_STATE_SIGNAL_HEADER,
+	SIG_STATE_SIGNAL_NAME_EMPTY,
+	SIG_STATE_SIGNAL_NAME_CHAR,
+	SIG_STATE_SIGNAL_NUMBER_EMPTY,
+	SIG_STATE_SIGNAL_NUMBER_BYTE1,
+	SIG_STATE_SIGNAL_NUMBER_BYTE2,
+	SIG_STATE_SIGNAL_NUMBER_BYTE3,
+	SIG_STATE_SIGNAL_NUMBER_BYTE4,
+	SIG_STATE_SIGNAL_FOOTER_BYTE1,
+	SIG_STATE_SIGNAL_FOOTER_BYTE2
 };
 
 enum
@@ -57,7 +57,7 @@ void DeallocateSigArray(struct SignalInfo *signals, int *size);
 struct SignalInfo *CreateIndexedSigArray(struct SignalInfo *arr, int size, int *new_size);
 void PrintSigArray(struct SignalInfo *signals, int sig_index);
 int FindDuplicateSignal(struct SignalInfo *signals, int size);
-struct SignalInfo *ParseSigFile(char *filepath, int *num_sig, char **header);
+struct SignalInfo *ReadSigFile(char *filepath, int *num_sig, char **header);
 
 
 #endif

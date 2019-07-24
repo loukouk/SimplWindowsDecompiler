@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 	}
 
-	signals = ParseSigFile(argv[1], &num_signals, &file_header);
+	signals = ReadSigFile(argv[1], &num_signals, &file_header);
 
 	dup_sig = FindDuplicateSignal(signals, num_signals);
 	if (dup_sig)

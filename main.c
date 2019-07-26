@@ -3,7 +3,8 @@
 #include "SymbolLib/SymbolLib.h"
 #include "BinReader/BinReader.h"
 #include "SigReader/SigReader.h"
-//#include "SmwBuilder.c"
+#include "SmwBuilder.c"
+
 
 void PrintBinArrayWithSignalLib(struct BinSymbol *syms, int sym_size, struct SignalInfo *sigs, int sig_size, struct SmwSymbolDefinition *lib, int lib_size)
 {
@@ -109,7 +110,8 @@ int main(int argc, char **argv)
 	signals_indexed = CreateIndexedSigArray(signals, num_signals, &idx_size);
 	DeallocateSigArray(signals, &num_signals);
 
-	PrintBinArrayWithSignalLib(symbols, num_symbols, signals_indexed, idx_size, lib, lib_size);
+	//PrintBinArrayWithSignalLib(symbols, num_symbols, signals_indexed, idx_size, lib, lib_size);
+	SmwBuilder("file.smw", symbols, num_symbols, signals_indexed, idx_size, lib, lib_size);
 
 	DeallocateBinArray(symbols, &num_symbols);
 	DeallocateSigArray(signals_indexed, &idx_size);

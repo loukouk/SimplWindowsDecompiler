@@ -1,0 +1,20 @@
+open file
+read the whole template file into string array
+close file
+scanf all strings for ObjTp=Sm\nH=%d to extract highest H value currently in use
+scanf all strings for ObjTp=Sm\nH=%d\nSmC=156\nNm=Logic to get PrH value for symbols (save string index)
+Process each decompiled symbol into a string
+	- H value
+	- SmC
+	- Name
+	- PrH
+	- Ins/Outs
+		- for each signal, check number-ordered array of H-values for signals. Use next H if unassigned (0: H=1, 1: H=2, Local: H=3, H=4 is first available)
+	- Params
+		- figure out if value saved is string or ushort and convert accordingly
+Append to separate string array, and create a H table for each entry as well (ordered by same index as string array)
+Modify Logic string using symbol H-table    "mC=%\n",H_table_len    for(H_table_len) "C%d=%d\n", index, H_value
+Write Header strings
+Write Symbol Strings
+Write Signal Strings
+	- Order by H_value, scan array for H=4 and enter ObjTp=Sg\nH=%d (fuck SgTp=4, idk what it does)

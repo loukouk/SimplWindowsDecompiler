@@ -82,6 +82,7 @@ void PrintBinArrayWithSignalLib(struct BinSymbol *syms, int sym_size, struct Sig
 
 int main(int argc, char **argv)
 {
+	
 	if (argc != 3)
 		return EXIT_FAILURE;
 
@@ -111,7 +112,7 @@ int main(int argc, char **argv)
 	DeallocateSigArray(signals, &num_signals);
 
 	//PrintBinArrayWithSignalLib(symbols, num_symbols, signals_indexed, idx_size, lib, lib_size);
-	SmwBuilder("file.smw", symbols, num_symbols, signals_indexed, idx_size, lib, lib_size);
+	SmwBuilder("new prog.smw", symbols, num_symbols, signals_indexed, idx_size, lib, lib_size);
 
 	DeallocateBinArray(symbols, &num_symbols);
 	DeallocateSigArray(signals_indexed, &idx_size);

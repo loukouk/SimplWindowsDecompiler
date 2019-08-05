@@ -10,6 +10,9 @@ struct SmwSymbolDefinition
 {
 	char name[STR_SIZE]; 
 	int SmC;
+	int min_inputs;
+	int min_outputs;
+	int min_params;
 };
 
 void DeallocateLibArray(struct SmwSymbolDefinition *arr, int *arr_size);

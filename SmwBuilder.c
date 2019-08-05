@@ -37,13 +37,41 @@ void AppendString(char **str, int *len, int *size, char *app)
 
 }
 
-int WriteSymbol(char *buf, int size, int idx, struct BinSymbol sym, struct SignalInfo *sigs, int sig_size, struct SmwSymbolDefinition *lib, int lib_size)
+int WriteSymbol(char *buf, int size, int idx, int prh, struct BinSymbol sym, struct SignalInfo *sigs, int sig_size, struct SmwSymbolDefinition *lib, int lib_size)
 {
 	int buf_bytes = 0;
+	int smw_outs, smw_ins, smw_params;
+
+	if (sym.num_outs >= lib[sym.id].min_outputs)
+	{
+		smw_outs = sym.num_outs;
+	}
+	else
+	{
+		smw_outs = lib[sym.id].min_outputs;
+	}
+
+	if (sym.num_ins >= lib[sym.id].min_inputs)
+	{
+		smw_ins = sym.num_ins;
+	}
+	else
+	{
+		smw_ins = lib[sym.id].min_inputs;
+	}
+
+	if (sym.num_params >= lib[sym.id].min_params)
+	{
+		smw_params = sym.num_params;
+	}
+	else
+	{
+		smw_params = lib[sym.id].min_params;
+	}
 
 	buf_bytes = snprintf(buf + buf_bytes, size - buf_bytes, 
-						"\r\n[\r\nObjTp=Sm\r\nNm=%s\r\nH=%d\r\nSmC=%d\r\nObjVer=1\r\nSmVr=1084\r\nPrH=4\r\nn1I=%d\r\nn1O=%d\r\nmI=%d\r\n",
-						lib[sym.id].name, idx, lib[sym.id].SmC, sym.num_ins, sym.num_outs, sym.num_ins);
+						"\r\n[\r\nObjTp=Sm\r\nNm=%s\r\nH=%d\r\nSmC=%d\r\nObjVer=1\r\nPrH=%d\r\nn1I=%d\r\nn1O=%d\r\nmI=%d\r\n",
+						lib[sym.id].name, idx, lib[sym.id].SmC, prh, smw_ins, smw_outs, smw_ins);
 
 	if (buf_bytes > size)
 		return -1;
@@ -56,7 +84,7 @@ int WriteSymbol(char *buf, int size, int idx, struct BinSymbol sym, struct Signa
 			return -1;
 	}
 
-	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mO=%d\r\n", sym.num_outs);
+	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mO=%d\r\n", smw_outs);
 	if (buf_bytes > size)
 		return -1;
 
@@ -68,7 +96,7 @@ int WriteSymbol(char *buf, int size, int idx, struct BinSymbol sym, struct Signa
 			return -1;
 	}
 
-	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mP=%d\r\n", sym.num_params);
+	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mP=%d\r\n", smw_params);
 	if (buf_bytes > size)
 		return -1;
 
@@ -261,7 +289,7 @@ void ParseSmwArr(char **str_arr, int arr_len, int *H_start, int *PrH_start, int 
 	*logic_idx = logic;
 }
 
-void SmwBuilder(char *filepath, struct BinSymbol *syms, int sym_size, struct SignalInfo *sigs, int sig_size, struct SmwSymbolDefinition *lib, int lib_size)
+void SmwBuilder(char *filepath, struct BinSymbol *syms, int sym_size, struct SignalInfo *sigs_indexed, int sig_size, struct SmwSymbolDefinition *lib, int lib_size)
 {
 	HANDLE smw_file;
 	char *write_buffer;
@@ -292,7 +320,7 @@ void SmwBuilder(char *filepath, struct BinSymbol *syms, int sym_size, struct Sig
 		    }
 			memset(write_buffer, '\0', write_buffer_size);
 
-	    	while ((write_buffer_bytes = WriteSymbol(write_buffer, write_buffer_size, write_idx, syms[i], sigs, sig_size, lib, lib_size)) < 0)
+	    	while ((write_buffer_bytes = WriteSymbol(write_buffer, write_buffer_size, write_idx, PrH_start, syms[i], sigs, sig_size, lib, lib_size)) < 0)
 	    	{
 	    		if (++loop_counter > 20)
 	    		{
@@ -355,7 +383,6 @@ void SmwBuilder(char *filepath, struct BinSymbol *syms, int sym_size, struct Sig
 	free(swm_str_arr[logic_idx]);
 	swm_str_arr[logic_idx] = write_buffer;
 	write_buffer = NULL;
-
 
 
 	smw_file = CreateFile("decompiled.smw",					// file to open

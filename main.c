@@ -97,8 +97,10 @@ int main(int argc, char **argv)
 	int lib_size, num_symbols, num_signals, dup_sig, idx_size;
 
 	lib = ReadSmwSymbolLib(&lib_size);
+
 	symbols = ReadBinFile(argv[1], &num_symbols, NULL);
 	signals = ReadSigFile(argv[2], &num_signals, NULL);
+
 
 	dup_sig = FindDuplicateSignal(signals, num_signals);
 	if (dup_sig)

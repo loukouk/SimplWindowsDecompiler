@@ -116,7 +116,6 @@ int main(int argc, char **argv)
 
 	DeallocateBinArray(symbols, &num_symbols);
 	DeallocateSigArray(signals_indexed, &idx_size);
-	getc(stdin);
 
 	return EXIT_SUCCESS;
 }

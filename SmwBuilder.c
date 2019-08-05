@@ -42,7 +42,7 @@ int WriteSymbol(char *buf, int size, int idx, struct BinSymbol sym, struct Signa
 	int buf_bytes = 0;
 
 	buf_bytes = snprintf(buf + buf_bytes, size - buf_bytes, 
-						"[\nObjTp=Sm\nNm=%s\nH=%d\nSmC=%d\nObjVer=1\nSmVr=1084\nPrH=4\nn1I=%d\nn1O=%d\nmI=%d\n",
+						"\r\n[\r\nObjTp=Sm\r\nNm=%s\r\nH=%d\r\nSmC=%d\r\nObjVer=1\r\nSmVr=1084\r\nPrH=4\r\nn1I=%d\r\nn1O=%d\r\nmI=%d\r\n",
 						lib[sym.id].name, idx, lib[sym.id].SmC, sym.num_ins, sym.num_outs, sym.num_ins);
 
 	if (buf_bytes > size)
@@ -50,44 +50,44 @@ int WriteSymbol(char *buf, int size, int idx, struct BinSymbol sym, struct Signa
 
 	for (int j = 1; j <= sym.num_ins; j++)
 	{
-		buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "I%d=%d\n", j, 4);
+		buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "I%d=\r\n", j);
 
 		if (buf_bytes > size)
 			return -1;
 	}
 
-	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mO=%d\n", sym.num_outs);
+	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mO=%d\r\n", sym.num_outs);
 	if (buf_bytes > size)
 		return -1;
 
 	for (int j = 1; j <= sym.num_outs; j++)
 	{
-		buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "O%d=%d\n", j, 4);
+		buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "O%d=\r\n", j);
 
 		if (buf_bytes > size)
 			return -1;
 	}
 
-	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mP=%d\n", sym.num_params);
+	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "mP=%d\r\n", sym.num_params);
 	if (buf_bytes > size)
 		return -1;
 
 	for (int j = 1; j <= sym.num_params; j++)
 	{
-		buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "P%d=%s\n", j, "1d");
+		buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "P%d=\r\n", j);
 
 		if (buf_bytes > size)
 			return -1;
 	}
 
-	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "]\n");
+	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "]");
 	if (buf_bytes > size)
 		return -1;
 
 	return buf_bytes;
 }
 
-void _AddStringToArray(char **str, int idx, char ***arr, int *size)
+void _AddStringToArray(char *str, int idx, char ***arr, int *size)
 {
 	while (idx >= *size)
 	{
@@ -98,7 +98,7 @@ void _AddStringToArray(char **str, int idx, char ***arr, int *size)
 		temp = malloc(sizeof(char*) * temp_size);
 		if (temp == NULL)
 		{
-			printf("Error: malloc() failed. Out of memory?\n");
+			printf("Error: malloc() failed. Out of memory?\r\n");
 			getc(stdin);
 			exit(EXIT_FAILURE);
 		}
@@ -116,10 +116,35 @@ void _AddStringToArray(char **str, int idx, char ***arr, int *size)
 		*size = temp_size;
 	}
 
-	(*arr)[idx] = *str;
+	(*arr)[idx] = str;
 }
 
-char **ReadSmwFile(char *filepath, int *arr_len)
+int WriteLogicSymbol(char *buf, int size, int h, int h_start, int num_sym)
+{
+	int buf_bytes = 0;
+
+	buf_bytes = snprintf(buf + buf_bytes, size - buf_bytes,
+				"\r\n[\r\nObjTp=Sm\r\nH=%d\r\nSmC=156\r\nNm=Logic\r\nObjVer=1\r\nmC=%d\r\n", h, num_sym);
+
+	if (buf_bytes > size)
+		return -1;
+
+	for (int j = 1; j <= num_sym; j++)
+	{
+		buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "C%d=%d\r\n", j, h_start + j - 1);
+
+		if (buf_bytes > size)
+			return -1;
+	}
+
+	buf_bytes += snprintf(buf + buf_bytes, size - buf_bytes, "]");
+	if (buf_bytes > size)
+		return -1;
+
+	return buf_bytes;
+}
+
+char **ReadSmwFile(char *filepath, int *arr_len, int *arr_max_size)
 {
 	HANDLE smw_file;
 	char read_buffer[BUF_SIZE];
@@ -138,7 +163,7 @@ char **ReadSmwFile(char *filepath, int *arr_len)
 
     if (smw_file == INVALID_HANDLE_VALUE) 
     { 
-        printf(TEXT("Error: unable to open \"%s\" for reading.\nPress the Enter key to close..."), filepath);
+        printf(TEXT("Error: unable to open \"%s\" for reading.\r\nPress the Enter key to close..."), filepath);
         getc(stdin);
         exit(EXIT_FAILURE);
     }
@@ -146,7 +171,7 @@ char **ReadSmwFile(char *filepath, int *arr_len)
     str_buffer = malloc(sizeof(char) * str_buf_size);
     if (str_buffer == NULL)
     {
-    	printf("Error: malloc() failed. Out of memory?\n");
+    	printf("Error: malloc() failed. Out of memory?\r\n");
     	getc(stdin);
     	exit(EXIT_FAILURE);
     }
@@ -154,7 +179,7 @@ char **ReadSmwFile(char *filepath, int *arr_len)
     str_arr = malloc(sizeof(char*) * arr_size);
     if (str_arr == NULL)
     {
-    	printf("Error: malloc() failed. Out of memory?\n");
+    	printf("Error: malloc() failed. Out of memory?\r\n");
     	getc(stdin);
     	exit(EXIT_FAILURE);
     }
@@ -166,7 +191,7 @@ char **ReadSmwFile(char *filepath, int *arr_len)
 		memset(read_buffer, '\0', BUF_SIZE);
 		if (FALSE == ReadFile(smw_file, read_buffer, (DWORD)BUF_SIZE, &num_bytes_read, NULL))
 		{
-			printf("Error: Could not read from \"%s\".\nPress the Enter key to close...", filepath);
+			printf("Error: Could not read from \"%s\".\r\nPress the Enter key to close...", filepath);
 			getc(stdin);
 			exit(EXIT_FAILURE);
 		}
@@ -180,14 +205,14 @@ char **ReadSmwFile(char *filepath, int *arr_len)
 			str_index++;
 			if (c == ']')
 			{
-				_AddStringToArray(&str_buffer, arr_index, &str_arr, &arr_size);
+				_AddStringToArray(str_buffer, arr_index, &str_arr, &arr_size);
 				arr_index++;
 
 				str_buf_size = STR_SIZE;
 				str_buffer = malloc(sizeof(char) * str_buf_size);
 				if (str_buffer == NULL)
 				{
-					printf("Error: malloc() failed. Out of memory?\n");
+					printf("Error: malloc() failed. Out of memory?\r\n");
 					getc(stdin);
 					exit(EXIT_FAILURE);
 				}
@@ -207,6 +232,7 @@ char **ReadSmwFile(char *filepath, int *arr_len)
     free(str_buffer);
 
     *arr_len = arr_index;
+    *arr_max_size = arr_size;
     return str_arr;
 }
 
@@ -216,7 +242,7 @@ void ParseSmwArr(char **str_arr, int arr_len, int *H_start, int *PrH_start, int 
 
 	for (int i = 0; i < arr_len; i++)
 	{
-		if (sscanf(str_arr[i], "\n[\nObjTp=Sm\nH=%d\nSmC=156\nNm=Logic\nObjVer=%d", &h, &obj_ver) > 1)
+		if (sscanf(str_arr[i], "\r\n[\r\nObjTp=Sm\r\nH=%d\r\nSmC=156\r\nNm=Logic\r\nObjVer=%d", &h, &obj_ver) > 1)
 		{
 			logic = i;
 			prh = h;
@@ -225,7 +251,7 @@ void ParseSmwArr(char **str_arr, int arr_len, int *H_start, int *PrH_start, int 
 
 	if (!logic || !h || !prh || !obj_ver)
 	{
-		printf("Error: Could not find where to write data. Is this file a properly formatted SMW file?\n");
+		printf("Error: Could not find where to write data. Is this file a properly formatted SMW file?\r\n");
 		getc(stdin);
 		exit(EXIT_FAILURE);
 	}
@@ -243,53 +269,27 @@ void SmwBuilder(char *filepath, struct BinSymbol *syms, int sym_size, struct Sig
 	int write_buffer_size, write_idx, write_buffer_bytes;
 	int loop_counter = 0;
 	char **swm_str_arr;
-	int smw_arr_len;
+	int smw_arr_len, smw_arr_size;
 	int H_start, PrH_start, logic_idx;
 
 
-    swm_str_arr = ReadSmwFile(filepath, &smw_arr_len);
+    swm_str_arr = ReadSmwFile(filepath, &smw_arr_len, &smw_arr_size);
     ParseSmwArr(swm_str_arr, smw_arr_len, &H_start, &PrH_start, &logic_idx);
 
     write_idx = H_start;
 
-	smw_file = CreateFile("decompiled.smw",							// file to open
-                      	  GENERIC_WRITE,					// create new file for writing
-                      	  0,       							// no sharing
-                      	  NULL,								// default security
-                     	  CREATE_ALWAYS,					// open existing file
-                      	  FILE_ATTRIBUTE_NORMAL,			// normal file
-                      	  NULL);
-
-    if (smw_file == INVALID_HANDLE_VALUE) 
-    { 
-        printf(TEXT("Error: unable to open \"%s\" for writing.\nPress the Enter key to close..."), filepath);
-        getc(stdin);
-        exit(EXIT_FAILURE);
-    }
-
-	write_buffer_size = BUF_SIZE;
-    write_buffer = malloc(sizeof(char) * write_buffer_size);
-    if (write_buffer == NULL)
-    {
-    	printf("Error: malloc() failed. Out of memory?\n");
-    	getc(stdin);
-    	exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < smw_arr_len; i++)
-    {
-		if (FALSE == WriteFile(smw_file, swm_str_arr[i], (DWORD)strlen(swm_str_arr[i]), &num_bytes_written, NULL))
-		{
-			printf("Error: Could not write to \"%s\" (0x%x).\nPress the Enter key to close...", filepath, (int)GetLastError());
-			getc(stdin);
-			exit(EXIT_FAILURE); 
-		}
-		total_bytes_written += num_bytes_written;
-    }
     for (int i = 0; i < sym_size; i++)
     {
     	if (lib[syms[i].id].name != NULL && lib[syms[i].id].SmC != 0)
     	{
+    		write_buffer_size = STR_SIZE;
+		    write_buffer = malloc(sizeof(char) * write_buffer_size);
+		    if (write_buffer == NULL)
+		    {
+		    	printf("Error: malloc() failed. Out of memory?\r\n");
+		    	getc(stdin);
+		    	exit(EXIT_FAILURE);
+		    }
 			memset(write_buffer, '\0', write_buffer_size);
 
 	    	while ((write_buffer_bytes = WriteSymbol(write_buffer, write_buffer_size, write_idx, syms[i], sigs, sig_size, lib, lib_size)) < 0)
@@ -307,28 +307,84 @@ void SmwBuilder(char *filepath, struct BinSymbol *syms, int sym_size, struct Sig
 	    		write_buffer = malloc(sizeof(char) * write_buffer_size);
 	    		if (write_buffer == NULL)
 	    		{
-			    	printf("Error: malloc() failed. Out of memory?\n");
+			    	printf("Error: malloc() failed. Out of memory?\r\n");
 			    	getc(stdin);
 			    	exit(EXIT_FAILURE);
 	    		}
 	    		memset(write_buffer, '\0', write_buffer_size);
 	    	}
-
-
-			if (FALSE == WriteFile(smw_file, write_buffer, (DWORD)strlen(write_buffer), &num_bytes_written, NULL))
-			{
-				printf("Error: Could not write to \"%s\" (0x%x).\nPress the Enter key to close...", filepath, (int)GetLastError());
-				getc(stdin);
-				exit(EXIT_FAILURE); 
-			}
-			total_bytes_written += num_bytes_written;
-
-	    	write_idx++;
+			write_idx++;
 	    	loop_counter = 0;
+
+			_AddStringToArray(write_buffer, smw_arr_len, &swm_str_arr, &smw_arr_size);
+			smw_arr_len++;
+			write_buffer = NULL;
 	    }
     }
 
-    free(write_buffer);
+	write_buffer_size = BUF_SIZE;
+	write_buffer = malloc(sizeof(char) * write_buffer_size);
+	if (write_buffer == NULL)
+	{
+		printf("Error: malloc() failed. Out of memory?\r\n");
+		getc(stdin);
+		exit(EXIT_FAILURE);
+	}
+	memset(write_buffer, '\0', write_buffer_size);
+	while ((write_buffer_bytes = WriteLogicSymbol(write_buffer, write_buffer_size, PrH_start, H_start, write_idx - H_start)) < 0)
+	{
+		if (++loop_counter > 20)
+		{
+			printf("Error: failed to resize write buffer. Exiting...");
+			getc(stdin);
+			exit(EXIT_FAILURE);
+		}
+
+		free(write_buffer);
+
+		write_buffer_size = write_buffer_size * 2;
+		write_buffer = malloc(sizeof(char) * write_buffer_size);
+		if (write_buffer == NULL)
+		{
+	    	printf("Error: malloc() failed. Out of memory?\r\n");
+	    	getc(stdin);
+	    	exit(EXIT_FAILURE);
+		}
+		memset(write_buffer, '\0', write_buffer_size);
+	}
+	free(swm_str_arr[logic_idx]);
+	swm_str_arr[logic_idx] = write_buffer;
+	write_buffer = NULL;
+
+
+
+	smw_file = CreateFile("decompiled.smw",					// file to open
+                      	  GENERIC_WRITE,					// writing only
+                      	  0,       							// no sharing
+                      	  NULL,								// default security
+                     	  CREATE_ALWAYS,					// always create a new file
+                      	  FILE_ATTRIBUTE_NORMAL,			// normal file
+                      	  NULL);
+
+    if (smw_file == INVALID_HANDLE_VALUE) 
+    { 
+        printf(TEXT("Error: unable to open \"%s\" for writing.\r\nPress the Enter key to close..."), filepath);
+        getc(stdin);
+        exit(EXIT_FAILURE);
+    }
+
+	for (int i = 0; i < smw_arr_len; i++)
+	{
+		if (FALSE == WriteFile(smw_file, swm_str_arr[i], (DWORD)strlen(swm_str_arr[i]), &num_bytes_written, NULL))
+		{
+			printf("Error: Could not write to \"%s\" (0x%x).\r\nPress the Enter key to close...", filepath, (int)GetLastError());
+			getc(stdin);
+			exit(EXIT_FAILURE); 
+		}
+		total_bytes_written += num_bytes_written;
+	}
+
+	printf("%d bytes written\r\n", (int)total_bytes_written);
 
 	CloseHandle(smw_file);
 }
